@@ -3,26 +3,85 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Meow Mayhem: Alien Ambush</title>
+<title>Meow Mayhem: Alien Ambush (Fixed Screen)</title>
 <style>
-  html,body{margin:0;height:100%;background:#0b0f14;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial}
+  html,body{margin:0;height:100%;background:#05070a;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial;overflow:hidden}
   canvas{display:block;width:100vw;height:100vh}
+
+  /* UI */
   #ui{position:fixed;inset:0;pointer-events:none}
-  .top{position:fixed;left:0;right:0;top:0;display:flex;gap:10px;align-items:center;padding:10px 12px;background:rgba(0,0,0,.25);backdrop-filter:blur(6px)}
-  .pill{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08);font-weight:800}
+  .top{
+    position:fixed;left:0;right:0;top:0;
+    display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+    padding:10px 12px;
+    background:linear-gradient(to bottom, rgba(0,0,0,.62), rgba(0,0,0,.22));
+    border-bottom:1px solid rgba(255,255,255,.06);
+    backdrop-filter: blur(6px);
+  }
+  .pill{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.07);font-weight:900;letter-spacing:.2px}
   .row{display:flex;gap:8px;flex-wrap:wrap}
-  .chip{padding:4px 8px;border-radius:999px;font-weight:900;font-size:14px}
+  .chip{padding:4px 8px;border-radius:999px;font-weight:1000;font-size:14px}
   .p1{background:#ff9aa2;color:#2a1a1d}
   .p2{background:#9ad1ff;color:#121a24}
-  .status{flex:1;opacity:.95}
-  .center{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center}
-  .btn{display:inline-block;padding:12px 18px;border-radius:12px;background:#2c2f3a;font-weight:900;cursor:pointer;pointer-events:auto}
-  .hint{opacity:.8;margin-top:10px;font-size:14px;line-height:1.35}
+  .status{flex:1;opacity:.95;min-width:220px}
   .bottom{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);opacity:.85;font-size:13px}
 
-  /* Found animation overlay */
+  /* Start */
+  .center{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;max-width:720px;padding:0 18px}
+  .btn{display:inline-block;padding:12px 18px;border-radius:12px;background:#1f2330;font-weight:1000;cursor:pointer;pointer-events:auto;box-shadow:0 10px 28px rgba(0,0,0,.55)}
+  .hint{opacity:.8;margin-top:10px;font-size:14px;line-height:1.35}
+
+  /* Cat images */
+  #catsLayer{position:fixed;inset:0;pointer-events:none;z-index:8}
+  .cat-img{
+    position:absolute;
+    transform:translate(-50%,-50%);
+    width:52px;height:52px;
+    object-fit:cover;border-radius:50%;
+    filter:contrast(1.08) brightness(.95) saturate(1.05);
+  }
+  .amok{filter:contrast(1.2) brightness(1.05) saturate(1.2) drop-shadow(0 0 14px rgba(255,120,0,.45));}
+  .panic{animation:panicShake .18s infinite;}
+  @keyframes panicShake{
+    0%{transform:translate(-50%,-50%) rotate(-2deg)}
+    50%{transform:translate(-50%,-50%) rotate(2deg)}
+    100%{transform:translate(-50%,-50%) rotate(-2deg)}
+  }
+
+  /* Scary overlays */
+  .scanlines{
+    position:fixed;inset:0;pointer-events:none;z-index:30;
+    background:
+      repeating-linear-gradient(to bottom,
+        rgba(255,255,255,.04) 0px,
+        rgba(255,255,255,.04) 1px,
+        rgba(0,0,0,0) 3px,
+        rgba(0,0,0,0) 6px);
+    mix-blend-mode:overlay;
+    opacity:.22;
+  }
+  .vignette{
+    position:fixed;inset:0;pointer-events:none;z-index:31;
+    background:radial-gradient(circle at 50% 45%, rgba(0,0,0,0) 0%, rgba(0,0,0,.35) 55%, rgba(0,0,0,.75) 100%);
+  }
+  .fog{
+    position:fixed;inset:-40px;pointer-events:none;z-index:29;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(90,255,205,.08), rgba(0,0,0,0) 55%),
+      radial-gradient(circle at 70% 60%, rgba(255,80,160,.06), rgba(0,0,0,0) 55%),
+      radial-gradient(circle at 50% 10%, rgba(255,180,80,.04), rgba(0,0,0,0) 60%);
+    animation:fogMove 8s linear infinite;
+    opacity:.75;
+  }
+  @keyframes fogMove{
+    0%{transform:translate(0,0)}
+    50%{transform:translate(-20px,14px)}
+    100%{transform:translate(0,0)}
+  }
+
+  /* Found flash */
   .foundFlash{
-    position:fixed;inset:0;pointer-events:none;z-index:20;
+    position:fixed;inset:0;pointer-events:none;z-index:50;
     background:rgba(255,40,40,.18);
     animation:flash 450ms ease-in-out 0s 2;
     display:none;
@@ -35,25 +94,27 @@
 
   /* Chaos overlay */
   .chaos{
-    position:fixed;inset:0;pointer-events:none;z-index:19;
-    background:rgba(255,120,0,.10);
+    position:fixed;inset:0;pointer-events:none;z-index:40;
+    background:rgba(255,120,0,.08);
     mix-blend-mode:screen;
-    animation:chaosPulse 1.2s infinite;
+    animation:chaosPulse 1.05s infinite;
     display:none;
   }
   @keyframes chaosPulse{
-    0%{opacity:.15}
-    50%{opacity:.45}
-    100%{opacity:.15}
+    0%{opacity:.10}
+    50%{opacity:.55}
+    100%{opacity:.10}
   }
 </style>
 </head>
 <body>
 <canvas id="game"></canvas>
 
+<div id="catsLayer"></div>
+
 <div id="ui">
   <div class="top">
-    <div class="pill">😼 Alien Ambush</div>
+    <div class="pill">👽 Alien Ambush — Fixed Screen</div>
     <div class="row" id="hud"></div>
     <div class="pill" id="timer">Chaos in: 25s</div>
     <div class="status" id="status"></div>
@@ -63,71 +124,101 @@
     <div style="font-size:44px;font-weight:1000;margin-bottom:6px;">Meow Mayhem: Alien Ambush</div>
     <div style="opacity:.9;margin-bottom:16px;">
       Hide in bushes 🌿 & trees 🌳. Avoid aliens 👽. Find the “?” box to go <b>AMOK</b>.
+      <div style="opacity:.75;margin-top:6px;font-size:13px;">(Single-screen arena — both players share one view.)</div>
     </div>
     <div class="btn" id="startBtn">Press ENTER or Click to Start</div>
     <div class="hint">
-      P1: WASD (move) + F (dash)<br/>
-      P2: Arrow Keys (move) + / (dash)<br/>
-      Lives: 3 catches max. Touch “?” to become big and eat aliens (and other cats).
+      P1: WASD + F (panic dash) • P2: Arrows + / (panic dash)<br/>
+      You can be caught <b>3 times</b>. Touch “?” to go AMOK and eat aliens (and your “friend”).
     </div>
   </div>
 
   <div class="bottom">Pause: <b>P</b> • Restart: <b>R</b></div>
 </div>
 
-<div class="foundFlash" id="foundFlash"></div>
+<div class="fog"></div>
+<div class="scanlines"></div>
+<div class="vignette"></div>
 <div class="chaos" id="chaosOverlay"></div>
+<div class="foundFlash" id="foundFlash"></div>
 
 <script>
 (() => {
-  // ================= CONFIG =================
+  // ====== CONFIG ======
   const CONFIG = {
-    targetPlayers: 2,      // easy to extend to 3-5 later
-    worldW: 2400,
-    worldH: 1500,
-    playerR: 18,
-    baseSpeed: 2.35,
-    dashBoost: 3.8,
-    dashMs: 300,
-    dashCooldownMs: 1200,
-    friction: 0.86,
-
+    maxPlayers: 2,
     lives: 3,
 
-    // stealth / line-of-sight
-    alienCountBase: 5,
-    alienCountChaosExtra: 7,
-    alienR: 16,
-    alienSpeed: 1.55,
-    alienChaseSpeed: 2.35,
-    alienViewDist: 280,
-    alienFovCos: Math.cos((70 * Math.PI/180)), // ~70 degrees half-angle
-    alienLoseSightMs: 900,
+    // arena (single screen, no camera)
+    boundsPad: 16,
+
+    // players
+    baseSpeed: 2.55,
+    friction: 0.86,
+    playerR: 22,
+
+    dashBoost: 4.8,
+    dashMs: 260,
+    dashCooldownMs: 1100,
+
+    // aliens
+    alienBase: 6,
+    alienChaosExtra: 9,
+    alienR: 18,
+    alienSpeed: 1.65,
+    alienChaseSpeed: 2.75,
+    alienViewDist: 300,
+    alienFovCos: Math.cos((78 * Math.PI/180)),
+    alienLoseSightMs: 700,
+    alienRageAccel: 1.12,  // escalates over time (spice)
 
     // obstacles
-    obstacleCount: 34,
+    obstacleCount: 30,
 
-    // amok power
+    // question box / amok
     amokMs: 11000,
-    amokSizeMul: 2.0,
-    amokEatRangeMul: 1.2,
+    amokSizeMul: 2.05,
+    amokEatMul: 1.25,
 
-    // chaos (spicy)
+    // chaos mode
     chaosIntervalMs: 25000,
     chaosDurationMs: 9000,
-    chaosSpeedMul: 1.25,     // players run faster
+    chaosPlayerSpeedMul: 1.25,
+    chaosAlienSpeedMul: 1.25,
+
+    // rage-bait text intensity (set false to calm)
+    taunts: true,
   };
 
-  // =============== INPUT ===============
+  // ====== CAT GIFS (same as your original) ======
+  const CAT_GIFS = [
+    "https://media.tenor.com/SuVGs-GL7RoAAAAi/shocked-shocked-cat.gif",
+    "https://media.tenor.com/Ym6VeAcZoTcAAAAi/aaaah-cat.gif",
+    "https://media.tenor.com/1Z8PTLFT8HUAAAAi/voices-cat.gif",
+    "https://media.tenor.com/T_avUEk3aWwAAAAi/catgroove7tv-catgroove.gif",
+    "https://media.tenor.com/y-Ew-QGLcpYAAAAi/shrek-cat.gif",
+  ];
+
+  const SKINS = [
+    { name:"Grumpy", chip:"p1", color:"#ff9aa2", gifIndex: 0 },
+    { name:"Nyan", chip:"p2", color:"#9ad1ff", gifIndex: 1 },
+  ];
+
+  const CONTROL_SETS = [
+    { up:'w', down:'s', left:'a', right:'d', dash:'f' },
+    { up:'ArrowUp', down:'ArrowDown', left:'ArrowLeft', right:'ArrowRight', dash:'/' },
+  ];
+
+  // ====== INPUT ======
   const keys = new Set();
-  window.addEventListener('keydown', (e) => {
+  addEventListener('keydown', (e) => {
     keys.add(e.key);
     if (e.key === 'Enter') start();
     if (e.key === ' ') e.preventDefault();
   });
-  window.addEventListener('keyup', (e) => keys.delete(e.key));
+  addEventListener('keyup', (e) => keys.delete(e.key));
 
-  // =============== CANVAS / CAMERA ===============
+  // ====== CANVAS ======
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   let W=0,H=0;
@@ -144,41 +235,42 @@
   resize();
   addEventListener('resize', resize);
 
-  // camera follows midpoint of alive players
-  const cam = { x:0, y:0 };
+  // ====== UI ======
+  const ui = {
+    hud: document.getElementById('hud'),
+    status: document.getElementById('status'),
+    timer: document.getElementById('timer'),
+    startScreen: document.getElementById('startScreen'),
+    startBtn: document.getElementById('startBtn'),
+    chaosOverlay: document.getElementById('chaosOverlay'),
+    foundFlash: document.getElementById('foundFlash'),
+    catsLayer: document.getElementById('catsLayer'),
+  };
 
-  // =============== UTIL ===============
+  function setStatus(msg){ ui.status.textContent = msg || ""; }
+  function flashFound(){
+    ui.foundFlash.style.display = 'block';
+    ui.foundFlash.style.animation = 'none';
+    void ui.foundFlash.offsetHeight;
+    ui.foundFlash.style.animation = '';
+    setTimeout(()=> ui.foundFlash.style.display='none', 900);
+  }
+
+  // ====== UTIL ======
   const rnd = (a,b)=> a + Math.random()*(b-a);
   const clamp = (v,a,b)=> Math.max(a, Math.min(b, v));
-  function dist(a,b){ return Math.hypot(a.x-b.x, a.y-b.y); }
-  function circleHit(ax,ay,ar, bx,by,br){ return Math.hypot(ax-bx, ay-by) <= ar+br; }
-
-  function segmentIntersectsCircle(x1,y1,x2,y2, cx,cy, r){
-    // project circle center onto segment, check distance
-    const dx = x2-x1, dy=y2-y1;
-    const l2 = dx*dx + dy*dy;
-    if (l2 === 0) return Math.hypot(cx-x1, cy-y1) <= r;
-    let t = ((cx-x1)*dx + (cy-y1)*dy) / l2;
-    t = clamp(t, 0, 1);
-    const px = x1 + t*dx;
-    const py = y1 + t*dy;
+  function circleHit(ax,ay,ar,bx,by,br){ return Math.hypot(ax-bx, ay-by) <= ar+br; }
+  function segCircle(x1,y1,x2,y2,cx,cy,r){
+    const dx=x2-x1, dy=y2-y1;
+    const l2=dx*dx+dy*dy;
+    if (l2===0) return Math.hypot(cx-x1, cy-y1) <= r;
+    let t=((cx-x1)*dx+(cy-y1)*dy)/l2;
+    t=clamp(t,0,1);
+    const px=x1+t*dx, py=y1+t*dy;
     return Math.hypot(cx-px, cy-py) <= r;
   }
 
-  function blockedLOS(ax,ay, bx,by){
-    // line-of-sight blocked by circular obstacles (bush/tree)
-    for (const o of obstacles){
-      if (segmentIntersectsCircle(ax,ay,bx,by, o.x,o.y, o.blockR)) return true;
-    }
-    return false;
-  }
-
-  function confineCircle(e, r){
-    e.x = clamp(e.x, r, CONFIG.worldW - r);
-    e.y = clamp(e.y, r, CONFIG.worldH - r);
-  }
-
-  // =============== GAME STATE ===============
+  // ====== ENTITIES ======
   const players = [];
   const aliens = [];
   const obstacles = [];
@@ -189,78 +281,32 @@
   let acc = 0;
   const dt = 1000/60;
 
-  let nextChaosAt = 0;
-  let chaosEndAt = 0;
-  let chaosActive = false;
+  let chaosActive=false;
+  let nextChaosAt=0;
+  let chaosEndAt=0;
 
-  const ui = {
-    hud: document.getElementById('hud'),
-    status: document.getElementById('status'),
-    timer: document.getElementById('timer'),
-    startScreen: document.getElementById('startScreen'),
-    startBtn: document.getElementById('startBtn'),
-    foundFlash: document.getElementById('foundFlash'),
-    chaosOverlay: document.getElementById('chaosOverlay')
-  };
+  let rageLevel = 0; // increases over time => aliens get nastier
+  let lastTauntAt = 0;
 
-  const CONTROL_SETS = [
-    { up:'w', down:'s', left:'a', right:'d', dash:'f' },
-    { up:'ArrowUp', down:'ArrowDown', left:'ArrowLeft', right:'ArrowRight', dash:'/' },
-    { up:'i', down:'k', left:'j', right:'l', dash:'h' },
-    { up:'t', down:'g', left:'f', right:'h', dash:'y' },
-    { up:'8', down:'5', left:'4', right:'6', dash:'0' },
-  ];
-
-  const SKINS = [
-    { name:"Grumpy", emoji:"😾", chip:"p1", color:"#ff9aa2" },
-    { name:"Nyan", emoji:"🌈", chip:"p2", color:"#9ad1ff" },
-    { name:"Keyboard", emoji:"🎹", chip:"p3", color:"#b5ff9a" },
-    { name:"Bongo", emoji:"🥁", chip:"p4", color:"#ffdf9a" },
-    { name:"Shrek", emoji:"👹", chip:"p5", color:"#c4a2ff" },
-  ];
-
-  // =============== UI HELPERS ===============
-  function setStatus(msg){ ui.status.textContent = msg || ""; }
-  function flashFound(){
-    ui.foundFlash.style.display = 'block';
-    // restart animation
-    ui.foundFlash.style.animation = 'none';
-    // force reflow
-    void ui.foundFlash.offsetHeight;
-    ui.foundFlash.style.animation = '';
-    setTimeout(()=> ui.foundFlash.style.display='none', 900);
-  }
-  function setChaosUI(on){
-    ui.chaosOverlay.style.display = on ? 'block' : 'none';
-  }
-
-  function renderHUD(){
-    ui.hud.innerHTML = '';
-    for (const p of players){
-      const span = document.createElement('span');
-      span.className = `chip ${p.skin.chip}`;
-      const lives = p.livesLeft;
-      const amok = p.amokUntil > performance.now() ? " AMOK" : "";
-      const dead = p.dead ? " (OUT)" : "";
-      span.textContent = `${p.skin.emoji} ${p.skin.name}: ${lives}❤${amok}${dead}`;
-      ui.hud.appendChild(span);
+  // ====== OBSTACLES / LOS ======
+  function blockedLOS(ax,ay,bx,by){
+    for (const o of obstacles){
+      if (segCircle(ax,ay,bx,by, o.x,o.y, o.blockR)) return true;
     }
+    return false;
   }
 
-  // =============== WORLD GEN ===============
   function spawnObstacles(){
-    obstacles.length = 0;
+    obstacles.length=0;
     for (let i=0;i<CONFIG.obstacleCount;i++){
-      const kind = Math.random() < 0.55 ? 'bush' : 'tree';
-      const r = kind === 'bush' ? rnd(28, 44) : rnd(34, 58);
-      const blockR = r * (kind === 'bush' ? 0.95 : 1.05);
-
+      const kind = Math.random()<0.55 ? 'bush' : 'tree';
+      const r = kind==='bush' ? rnd(30, 48) : rnd(38, 64);
       obstacles.push({
         kind,
-        x: rnd(120, CONFIG.worldW-120),
-        y: rnd(120, CONFIG.worldH-120),
+        x: rnd(90, W-90),
+        y: rnd(110, H-90),
         r,
-        blockR,
+        blockR: r*(kind==='bush'?0.95:1.05),
         sway: rnd(0, Math.PI*2),
       });
     }
@@ -268,91 +314,401 @@
 
   function spawnQuestionBox(){
     questionBox = {
-      x: rnd(160, CONFIG.worldW-160),
-      y: rnd(160, CONFIG.worldH-160),
+      x: rnd(80, W-80),
+      y: rnd(90, H-80),
       r: 18,
       bob: 0
     };
   }
 
-  function spawnPlayers(n=CONFIG.targetPlayers){
-    players.length = 0;
+  // ====== CAT IMAGES ======
+  function createCatImg(p){
+    const img = document.createElement('img');
+    img.className = 'cat-img';
+    img.src = CAT_GIFS[p.skin.gifIndex];
+    img.id = `cat-${p.id}`;
+    ui.catsLayer.appendChild(img);
+    return img;
+  }
+  function updateCatImgs(){
+    const now = performance.now();
+    for (const p of players){
+      if (!p.img) continue;
+      p.img.style.left = `${p.x}px`;
+      p.img.style.top = `${p.y}px`;
+
+      const amok = now < p.amokUntil;
+      const r = amok ? CONFIG.playerR*CONFIG.amokSizeMul : CONFIG.playerR;
+      p.img.style.width = `${r*2}px`;
+      p.img.style.height = `${r*2}px`;
+
+      p.img.classList.toggle('amok', amok);
+      p.img.classList.toggle('panic', now < p.dashUntil);
+
+      // glow feedback
+      if (now < p.invulnUntil) {
+        p.img.style.boxShadow = '0 0 0 3px rgba(255,255,255,.25), 0 0 18px rgba(255,70,70,.55)';
+        p.img.style.opacity = (Math.floor(now/90)%2) ? '0.35' : '1';
+      } else {
+        p.img.style.opacity = '1';
+        p.img.style.boxShadow = amok
+          ? '0 0 0 3px rgba(255,170,60,.30), 0 0 26px rgba(255,120,0,.55)'
+          : '0 0 0 2px rgba(255,255,255,.10)';
+      }
+    }
+  }
+
+  // ====== SPAWNS ======
+  function spawnPlayers(n=CONFIG.maxPlayers){
+    ui.catsLayer.innerHTML='';
+    players.length=0;
     for (let i=0;i<n;i++){
-      const skin = SKINS[i % SKINS.length];
-      players.push({
-        id: i,
+      const skin = SKINS[i];
+      const p = {
+        id:i,
         skin,
-        x: (i===0 ? 260 : CONFIG.worldW-260),
-        y: CONFIG.worldH/2 + (i===0 ? -80 : 80),
-        vx: 0,
-        vy: 0,
-        r: CONFIG.playerR,
+        x: i===0 ? W*0.22 : W*0.78,
+        y: H*0.55 + (i===0 ? -70 : 70),
+        vx:0, vy:0,
         livesLeft: CONFIG.lives,
-        dead: false,
+        dead:false,
         controls: CONTROL_SETS[i],
 
-        // dash
-        dashUntil: 0,
-        dashCdUntil: 0,
+        dashUntil:0,
+        dashCdUntil:0,
 
-        // stealth
-        lastCaughtAt: -99999,
-        invulnUntil: 0,
-
-        // amok
-        amokUntil: 0,
-      });
+        invulnUntil:0,
+        amokUntil:0,
+      };
+      p.img = createCatImg(p);
+      players.push(p);
     }
     renderHUD();
   }
 
   function spawnAlien(){
-    // spawn around edges
     const side = Math.floor(rnd(0,4));
     let x,y;
-    if (side===0){ x=rnd(30, CONFIG.worldW-30); y=30; }
-    else if (side===1){ x=rnd(30, CONFIG.worldW-30); y=CONFIG.worldH-30; }
-    else if (side===2){ x=30; y=rnd(30, CONFIG.worldH-30); }
-    else { x=CONFIG.worldW-30; y=rnd(30, CONFIG.worldH-30); }
+    if (side===0){ x=rnd(30, W-30); y=60; }
+    else if (side===1){ x=rnd(30, W-30); y=H-30; }
+    else if (side===2){ x=30; y=rnd(70, H-30); }
+    else { x=W-30; y=rnd(70, H-30); }
 
-    const a = {
+    aliens.push({
       x,y,
-      vx: rnd(-1,1),
-      vy: rnd(-1,1),
+      vx:0, vy:0,
       r: CONFIG.alienR,
-      dir: rnd(0, Math.PI*2),    // facing direction for FOV
-      patrolTurn: rnd(0.01, 0.05),
-
-      state: "patrol",           // "patrol" | "chase"
-      targetId: null,
-      lastSeenAt: -99999,
-      wobble: rnd(0, Math.PI*2)
-    };
-    aliens.push(a);
+      dir: rnd(0, Math.PI*2),
+      patrolTurn: rnd(0.01,0.06),
+      state:'patrol',
+      targetId:null,
+      lastSeenAt:-99999,
+      wobble:rnd(0,Math.PI*2),
+      beam:0, // caught animation
+    });
   }
-
   function spawnAliens(count){
     for (let i=0;i<count;i++) spawnAlien();
   }
 
-  // =============== START / RESET ===============
+  // ====== HUD ======
+  function renderHUD(){
+    ui.hud.innerHTML='';
+    const now = performance.now();
+    for (const p of players){
+      const span = document.createElement('span');
+      span.className = `chip ${p.skin.chip}`;
+      const amok = now < p.amokUntil ? " AMOK" : "";
+      const dead = p.dead ? " (OUT)" : "";
+      span.textContent = `😼 ${p.skin.name}: ${p.livesLeft}❤${amok}${dead}`;
+      ui.hud.appendChild(span);
+    }
+  }
+
+  // ====== CHAOS MODE ======
+  function setChaosUI(on){ ui.chaosOverlay.style.display = on ? 'block' : 'none'; }
+  function updateChaosTimer(){
+    const now = performance.now();
+    if (!chaosActive){
+      ui.timer.textContent = `Chaos in: ${Math.max(0, Math.ceil((nextChaosAt-now)/1000))}s`;
+    } else {
+      ui.timer.textContent = `CHAOS: ${Math.max(0, Math.ceil((chaosEndAt-now)/1000))}s`;
+    }
+  }
+  function maybeChaos(){
+    const now = performance.now();
+    if (!chaosActive && now >= nextChaosAt){
+      chaosActive = true;
+      chaosEndAt = now + CONFIG.chaosDurationMs;
+      setChaosUI(true);
+      spawnAliens(CONFIG.alienChaosExtra);
+      setStatus(CONFIG.taunts ? "🔥 CHAOS MODE: run. faster. they multiply." : "🔥 CHAOS MODE!");
+    }
+    if (chaosActive && now >= chaosEndAt){
+      chaosActive = false;
+      setChaosUI(false);
+      setStatus("");
+      nextChaosAt = now + CONFIG.chaosIntervalMs;
+    }
+  }
+
+  // ====== GAME LOGIC ======
+  function catchPlayer(p, cause){
+    const now = performance.now();
+    if (p.dead) return;
+
+    p.livesLeft -= 1;
+    p.invulnUntil = now + 1300;
+
+    flashFound();
+
+    if (CONFIG.taunts){
+      const msgs = [
+        `${p.skin.name} got scanned. Again.`,
+        `Skill issue detected: ${p.skin.name} was found.`,
+        `${p.skin.name} hesitated. The alien didn't.`,
+        `Imagine getting spotted in a bush. (${p.skin.name})`,
+      ];
+      setStatus(msgs[Math.floor(Math.random()*msgs.length)]);
+    } else {
+      setStatus(`${p.skin.name} was caught! (-1 life)`);
+    }
+
+    renderHUD();
+
+    if (p.livesLeft <= 0){
+      p.dead = true;
+      setStatus(CONFIG.taunts ? `${p.skin.name} is OUT. Brutal.` : `${p.skin.name} is OUT.`);
+      renderHUD();
+    }
+
+    // respawn reposition (still on same screen)
+    p.x = rnd(80, W-80);
+    p.y = rnd(90, H-80);
+    p.vx = p.vy = 0;
+
+    const alive = players.filter(pp => !pp.dead);
+    if (alive.length <= 1){
+      paused = true;
+      const winner = alive[0];
+      setStatus(winner ? `🏆 ${winner.skin.name} survives. Press R.` : `No survivors. Press R.`);
+    }
+  }
+
+  function handleInput(p){
+    if (p.dead) return;
+    const now = performance.now();
+
+    let up = keys.has(p.controls.up) || keys.has(p.controls.up.toUpperCase());
+    let down = keys.has(p.controls.down) || keys.has(p.controls.down.toUpperCase());
+    let left = keys.has(p.controls.left) || keys.has(p.controls.left.toUpperCase());
+    let right = keys.has(p.controls.right) || keys.has(p.controls.right.toUpperCase());
+
+    let speed = CONFIG.baseSpeed * (chaosActive ? CONFIG.chaosPlayerSpeedMul : 1);
+
+    if (keys.has(p.controls.dash) && now > p.dashCdUntil){
+      p.dashUntil = now + CONFIG.dashMs;
+      p.dashCdUntil = now + CONFIG.dashCooldownMs;
+    }
+    if (now < p.dashUntil) speed += CONFIG.dashBoost;
+    if (now < p.amokUntil) speed *= 1.12;
+
+    if (up) p.vy -= speed*0.62;
+    if (down) p.vy += speed*0.62;
+    if (left) p.vx -= speed*0.62;
+    if (right) p.vx += speed*0.62;
+  }
+
+  function updatePlayer(p){
+    const now = performance.now();
+    if (p.dead) return;
+
+    p.vx *= CONFIG.friction;
+    p.vy *= CONFIG.friction;
+
+    p.x += p.vx;
+    p.y += p.vy;
+
+    const r = CONFIG.playerR * (now < p.amokUntil ? CONFIG.amokSizeMul : 1);
+    p.x = clamp(p.x, CONFIG.boundsPad + r, W - CONFIG.boundsPad - r);
+    p.y = clamp(p.y, 60 + r, H - CONFIG.boundsPad - r); // keep below topbar
+
+    // question box -> AMOK
+    if (questionBox && circleHit(p.x,p.y,r, questionBox.x,questionBox.y, questionBox.r)){
+      p.amokUntil = now + CONFIG.amokMs;
+      spawnQuestionBox();
+      renderHUD();
+
+      setStatus(CONFIG.taunts
+        ? `💥 ${p.skin.name} touched the ? box. Congrats: you're the problem now.`
+        : `💥 ${p.skin.name} went AMOK!`);
+    }
+  }
+
+  function applyAmok(){
+    const now = performance.now();
+    for (const eater of players){
+      if (eater.dead) continue;
+      if (now >= eater.amokUntil) continue;
+
+      const r = CONFIG.playerR * CONFIG.amokSizeMul;
+      const eatR = r * CONFIG.amokEatMul;
+
+      // eat aliens
+      for (let i=aliens.length-1;i>=0;i--){
+        const a = aliens[i];
+        if (circleHit(eater.x,eater.y,eatR, a.x,a.y,a.r)){
+          aliens.splice(i,1);
+          if (Math.random()<0.2) setStatus(CONFIG.taunts ? "👹 Crunch. One less problem." : "👹 Alien eaten!");
+        }
+      }
+
+      // eat other player
+      for (const victim of players){
+        if (victim === eater) continue;
+        if (victim.dead) continue;
+        const vr = CONFIG.playerR * (now < victim.amokUntil ? CONFIG.amokSizeMul : 1);
+        if (circleHit(eater.x,eater.y,eatR, victim.x,victim.y,vr)){
+          catchPlayer(victim, {byPlayer:true});
+        }
+      }
+    }
+  }
+
+  function alienCanSee(a, p){
+    if (p.dead) return false;
+    const now = performance.now();
+    const pr = CONFIG.playerR * (now < p.amokUntil ? CONFIG.amokSizeMul : 1);
+    const dx = p.x - a.x;
+    const dy = p.y - a.y;
+    const d = Math.hypot(dx,dy);
+    if (d > CONFIG.alienViewDist + (now < p.amokUntil ? 40 : 0)) return false; // AMOK easier to spot
+
+    const ndx = dx/(d||1), ndy = dy/(d||1);
+    const fx = Math.cos(a.dir), fy = Math.sin(a.dir);
+    const dot = ndx*fx + ndy*fy;
+    if (dot < CONFIG.alienFovCos) return false;
+
+    if (blockedLOS(a.x,a.y, p.x,p.y)) return false;
+    return true;
+  }
+
+  function updateAlien(a){
+    const now = performance.now();
+    a.wobble += 0.08;
+
+    // beam animation decay
+    a.beam *= 0.9;
+
+    // target selection
+    let best=null, bestD=Infinity;
+    for (const p of players){
+      if (alienCanSee(a,p)){
+        const d = Math.hypot(p.x-a.x, p.y-a.y);
+        if (d < bestD){ bestD=d; best=p; }
+      }
+    }
+
+    if (best){
+      a.state='chase';
+      a.targetId=best.id;
+      a.lastSeenAt=now;
+    } else if (a.state==='chase' && (now-a.lastSeenAt) > CONFIG.alienLoseSightMs){
+      a.state='patrol';
+      a.targetId=null;
+    }
+
+    // escalating rage makes aliens nastier over time
+    const rageMul = 1 + rageLevel*0.045;
+
+    let spPatrol = CONFIG.alienSpeed * rageMul;
+    let spChase = CONFIG.alienChaseSpeed * rageMul;
+
+    if (chaosActive){
+      spPatrol *= CONFIG.chaosAlienSpeedMul;
+      spChase *= CONFIG.chaosAlienSpeedMul;
+    }
+
+    if (a.state==='chase' && a.targetId!=null){
+      const p = players[a.targetId];
+      if (p && !p.dead){
+        const dx = p.x-a.x, dy=p.y-a.y;
+        const d = Math.hypot(dx,dy)||1;
+        a.vx = (dx/d)*spChase;
+        a.vy = (dy/d)*spChase;
+        a.dir = Math.atan2(a.vy, a.vx);
+      }
+    } else {
+      // patrol drift
+      a.dir += (Math.sin(a.wobble)*0.02) + (Math.random()<0.03 ? rnd(-a.patrolTurn, a.patrolTurn) : 0);
+      a.vx = Math.cos(a.dir)*spPatrol;
+      a.vy = Math.sin(a.dir)*spPatrol;
+    }
+
+    a.x += a.vx;
+    a.y += a.vy;
+
+    // bounds bounce (keep below top bar)
+    const topLimit = 60 + a.r;
+    if (a.x < a.r || a.x > W-a.r){ a.dir = Math.PI - a.dir; a.x = clamp(a.x, a.r, W-a.r); }
+    if (a.y < topLimit || a.y > H-a.r){ a.dir = -a.dir; a.y = clamp(a.y, topLimit, H-a.r); }
+
+    // obstacle push-out
+    for (const o of obstacles){
+      const d = Math.hypot(a.x-o.x, a.y-o.y);
+      const min = a.r + o.r*0.82;
+      if (d>0 && d<min){
+        const nx=(a.x-o.x)/d, ny=(a.y-o.y)/d;
+        a.x = o.x + nx*min;
+        a.y = o.y + ny*min;
+        a.dir += rnd(-0.65, 0.65);
+      }
+    }
+
+    // catch players (unless AMOK => alien gets eaten)
+    for (const p of players){
+      if (p.dead) continue;
+      if (now < p.invulnUntil) continue;
+
+      const pr = CONFIG.playerR * (now < p.amokUntil ? CONFIG.amokSizeMul : 1);
+      if (circleHit(a.x,a.y,a.r, p.x,p.y, pr)){
+        if (now < p.amokUntil){
+          // AMOK eats alien on contact
+          const idx = aliens.indexOf(a);
+          if (idx>=0) aliens.splice(idx,1);
+          if (Math.random()<0.25) setStatus(CONFIG.taunts ? "👹 Alien tried it. Alien lost." : "👹 Alien eaten!");
+          return;
+        } else {
+          a.beam = 1; // show abduction beam effect
+          catchPlayer(p, {byAlien:true});
+          return;
+        }
+      }
+    }
+  }
+
+  // ====== RESET / START ======
   function resetGame(){
-    setStatus("Hide! Find the ? box to go AMOK.");
-    paused = false;
-    chaosActive = false;
+    paused=false;
+    chaosActive=false;
     setChaosUI(false);
+    rageLevel = 0;
+    lastTauntAt = 0;
 
     spawnObstacles();
     spawnQuestionBox();
-    spawnPlayers(CONFIG.targetPlayers);
-    aliens.length = 0;
-    spawnAliens(CONFIG.alienCountBase);
+    spawnPlayers(CONFIG.maxPlayers);
+
+    aliens.length=0;
+    spawnAliens(CONFIG.alienBase);
 
     const now = performance.now();
     nextChaosAt = now + CONFIG.chaosIntervalMs;
     chaosEndAt = 0;
-    updateChaosTimer();
+
+    setStatus("Hide. Don't get scanned. Find the ? box.");
     renderHUD();
+    updateChaosTimer();
   }
 
   function start(){
@@ -366,335 +722,70 @@
 
   ui.startBtn.addEventListener('click', start);
 
-  addEventListener('keydown', (e) => {
-    if (e.key.toLowerCase()==='p'){ paused = !paused; setStatus(paused ? "Paused" : ""); }
+  addEventListener('keydown', (e)=>{
+    if (e.key.toLowerCase()==='p'){ paused=!paused; setStatus(paused?"Paused":""); }
     if (e.key.toLowerCase()==='r'){ resetGame(); }
   });
 
-  // =============== CHAOS MODE ===============
-  function updateChaosTimer(){
-    const now = performance.now();
-    if (!chaosActive){
-      const s = Math.max(0, Math.ceil((nextChaosAt - now)/1000));
-      ui.timer.textContent = `Chaos in: ${s}s`;
-    } else {
-      const s = Math.max(0, Math.ceil((chaosEndAt - now)/1000));
-      ui.timer.textContent = `CHAOS: ${s}s`;
-    }
-  }
-
-  function maybeStartChaos(){
-    const now = performance.now();
-    if (!chaosActive && now >= nextChaosAt){
-      chaosActive = true;
-      chaosEndAt = now + CONFIG.chaosDurationMs;
-      setChaosUI(true);
-      setStatus("🔥 CHAOS MODE! More aliens + faster cats!");
-      // spicy: add extra aliens immediately
-      spawnAliens(CONFIG.alienCountChaosExtra);
-    }
-    if (chaosActive && now >= chaosEndAt){
-      chaosActive = false;
-      setChaosUI(false);
-      setStatus("");
-      nextChaosAt = now + CONFIG.chaosIntervalMs;
-    }
-  }
-
-  // =============== PLAYER INPUT / UPDATE ===============
-  function handlePlayerInput(p){
-    if (p.dead) return;
-    const now = performance.now();
-
-    let up = keys.has(p.controls.up) || keys.has(p.controls.up.toUpperCase());
-    let down = keys.has(p.controls.down) || keys.has(p.controls.down.toUpperCase());
-    let left = keys.has(p.controls.left) || keys.has(p.controls.left.toUpperCase());
-    let right = keys.has(p.controls.right) || keys.has(p.controls.right.toUpperCase());
-
-    let speed = CONFIG.baseSpeed;
-    if (chaosActive) speed *= CONFIG.chaosSpeedMul;
-
-    // dash
-    if (keys.has(p.controls.dash) && now > p.dashCdUntil){
-      p.dashUntil = now + CONFIG.dashMs;
-      p.dashCdUntil = now + CONFIG.dashCooldownMs;
-    }
-    if (now < p.dashUntil) speed += CONFIG.dashBoost;
-
-    // AMOK makes you heavier / faster a bit
-    if (now < p.amokUntil) speed *= 1.12;
-
-    if (up) p.vy -= speed*0.6;
-    if (down) p.vy += speed*0.6;
-    if (left) p.vx -= speed*0.6;
-    if (right) p.vx += speed*0.6;
-  }
-
-  function updatePlayer(p){
-    const now = performance.now();
-    if (p.dead) return;
-
-    p.vx *= CONFIG.friction;
-    p.vy *= CONFIG.friction;
-    p.x += p.vx;
-    p.y += p.vy;
-    confineCircle(p, p.r);
-
-    // pick up question box => AMOK
-    if (questionBox && circleHit(p.x,p.y,p.r, questionBox.x,questionBox.y, questionBox.r)){
-      p.amokUntil = now + CONFIG.amokMs;
-      setStatus(`💥 ${p.skin.name} found the ? box and went AMOK!`);
-      // respawn question box elsewhere for continued play
-      spawnQuestionBox();
-      renderHUD();
-    }
-  }
-
-  // AMOK interactions: eat aliens + other players
-  function applyAmokEats(){
-    const now = performance.now();
-    for (const eater of players){
-      if (eater.dead) continue;
-      if (now >= eater.amokUntil) continue;
-
-      const eatR = eater.r * CONFIG.amokEatRangeMul;
-
-      // eat aliens
-      for (let i=aliens.length-1;i>=0;i--){
-        const a = aliens[i];
-        if (circleHit(eater.x,eater.y,eatR, a.x,a.y,a.r)){
-          aliens.splice(i,1);
-          setStatus(`👹 ${eater.skin.name} ate an alien!`);
-        }
-      }
-
-      // eat other players (fun chaos)
-      for (const victim of players){
-        if (victim===eater) continue;
-        if (victim.dead) continue;
-        if (circleHit(eater.x,eater.y,eatR, victim.x,victim.y,victim.r)){
-          // treat as "caught"
-          catchPlayer(victim, eater, {byPlayer:true});
-        }
-      }
-    }
-  }
-
-  // =============== ALIENS (PATROL + CHASE WITH LOS) ===============
-  function alienCanSeePlayer(a, p){
-    if (p.dead) return false;
-    const d = Math.hypot(p.x-a.x, p.y-a.y);
-    if (d > CONFIG.alienViewDist) return false;
-
-    // FOV check
-    const dx = (p.x-a.x)/d;
-    const dy = (p.y-a.y)/d;
-    const fx = Math.cos(a.dir);
-    const fy = Math.sin(a.dir);
-    const dot = dx*fx + dy*fy;
-    if (dot < CONFIG.alienFovCos) return false;
-
-    // line of sight blocked by obstacles
-    if (blockedLOS(a.x,a.y, p.x,p.y)) return false;
-
-    return true;
-  }
-
-  function updateAlien(a){
-    const now = performance.now();
-
-    // gentle wobble for animation
-    a.wobble += 0.08;
-
-    // choose a target if visible
-    let best = null;
-    let bestD = Infinity;
-    for (const p of players){
-      // AMOK cats are still visible; stealth is via bushes blocking LOS
-      if (alienCanSeePlayer(a, p)){
-        const d = Math.hypot(p.x-a.x, p.y-a.y);
-        if (d < bestD){
-          bestD = d;
-          best = p;
-        }
-      }
-    }
-
-    if (best){
-      a.state = "chase";
-      a.targetId = best.id;
-      a.lastSeenAt = now;
-    } else {
-      // lose sight after some time
-      if (a.state === "chase" && (now - a.lastSeenAt) > CONFIG.alienLoseSightMs){
-        a.state = "patrol";
-        a.targetId = null;
-      }
-    }
-
-    // movement
-    if (a.state === "chase" && a.targetId != null){
-      const p = players[a.targetId];
-      if (p && !p.dead){
-        const dx = p.x - a.x;
-        const dy = p.y - a.y;
-        const d = Math.hypot(dx,dy) || 1;
-        const sp = CONFIG.alienChaseSpeed;
-        a.vx = (dx/d)*sp;
-        a.vy = (dy/d)*sp;
-        a.dir = Math.atan2(a.vy, a.vx);
-      }
-    } else {
-      // patrol: slow drifting + turning
-      a.dir += (Math.sin(a.wobble)*0.02) + (Math.random()<0.02 ? rnd(-a.patrolTurn, a.patrolTurn) : 0);
-      const sp = CONFIG.alienSpeed;
-      a.vx = Math.cos(a.dir)*sp;
-      a.vy = Math.sin(a.dir)*sp;
-    }
-
-    a.x += a.vx;
-    a.y += a.vy;
-
-    // bounce world edges
-    if (a.x < a.r || a.x > CONFIG.worldW - a.r) { a.dir = Math.PI - a.dir; a.x = clamp(a.x, a.r, CONFIG.worldW-a.r); }
-    if (a.y < a.r || a.y > CONFIG.worldH - a.r) { a.dir = -a.dir; a.y = clamp(a.y, a.r, CONFIG.worldH-a.r); }
-
-    // collide with obstacles: simple push-out to avoid sticking in bushes/trees
-    for (const o of obstacles){
-      const d = Math.hypot(a.x-o.x, a.y-o.y);
-      const min = a.r + o.r*0.85;
-      if (d > 0 && d < min){
-        const nx = (a.x-o.x)/d;
-        const ny = (a.y-o.y)/d;
-        a.x = o.x + nx*min;
-        a.y = o.y + ny*min;
-        a.dir += rnd(-0.6, 0.6);
-      }
-    }
-
-    // catching players
-    for (const p of players){
-      if (p.dead) continue;
-      if (now < p.invulnUntil) continue;
-      if (circleHit(a.x,a.y,a.r, p.x,p.y,p.r)){
-        // if player is AMOK, they "bite back" by simply surviving (still can be caught if you want),
-        // but per your idea: AMOK should dominate.
-        if (now < p.amokUntil) {
-          // AMOK cat eats alien on contact
-          const idx = aliens.indexOf(a);
-          if (idx >= 0) aliens.splice(idx,1);
-          setStatus(`👹 ${p.skin.name} ate an alien (contact)!`);
-          return;
-        } else {
-          catchPlayer(p, a, {byAlien:true});
-        }
-      }
-    }
-  }
-
-  function catchPlayer(p, source, meta){
-    const now = performance.now();
-    p.livesLeft -= 1;
-    p.lastCaughtAt = now;
-    p.invulnUntil = now + 1300;
-
-    flashFound();
-
-    if (meta?.byAlien) setStatus(`🚨 ${p.skin.name} was found by an alien! (-1 life)`);
-    if (meta?.byPlayer) setStatus(`😼 ${p.skin.name} got eaten by AMOK cat! (-1 life)`);
-
-    renderHUD();
-
-    if (p.livesLeft <= 0){
-      p.dead = true;
-      setStatus(`💀 ${p.skin.name} is OUT!`);
-      renderHUD();
-    }
-
-    // respawn-ish: move to safe-ish random spot
-    p.x = rnd(120, CONFIG.worldW-120);
-    p.y = rnd(120, CONFIG.worldH-120);
-    p.vx = p.vy = 0;
-
-    // if everyone dead except maybe one => end
-    const alive = players.filter(pp => !pp.dead);
-    if (alive.length <= 1){
-      paused = true;
-      const winner = alive[0];
-      setStatus(winner ? `🏆 ${winner.skin.name} survives! Press R to restart.` : `Nobody survived! Press R to restart.`);
-    }
-  }
-
-  // =============== CAMERA UPDATE ===============
-  function updateCamera(){
-    const alive = players.filter(p=>!p.dead);
-    const focus = alive.length ? alive : players;
-    let mx=0,my=0;
-    for (const p of focus){ mx += p.x; my += p.y; }
-    mx /= focus.length; my /= focus.length;
-
-    cam.x = clamp(mx - W/2, 0, CONFIG.worldW - W);
-    cam.y = clamp(my - H/2, 0, CONFIG.worldH - H);
-  }
-
-  // =============== RENDERING ===============
-  function drawWorldBG(){
-    // ground
-    ctx.fillStyle = '#0f1620';
+  // ====== RENDER ======
+  function renderBG(){
+    // deep space forest vibe
+    const g = ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0, '#04060a');
+    g.addColorStop(1, '#071119');
+    ctx.fillStyle = g;
     ctx.fillRect(0,0,W,H);
 
-    // subtle stars / fireflies
+    // faint grid
     ctx.save();
-    ctx.globalAlpha = 0.18;
-    for (let i=0;i<90;i++){
-      const x = ((i*97) % 997) / 997 * W;
-      const y = ((i*53) % 733) / 733 * H;
-      ctx.fillStyle = i%7===0 ? '#ffe9a8' : '#cfe8ff';
-      ctx.fillRect(x, y, 2, 2);
+    ctx.globalAlpha = 0.07;
+    ctx.strokeStyle = '#ffffff';
+    for (let x=0; x<W; x+=60){
+      ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke();
+    }
+    for (let y=60; y<H; y+=60){
+      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
     }
     ctx.restore();
-  }
 
-  function worldToScreen(x,y){
-    return { x: x - cam.x, y: y - cam.y };
+    // top dark strip safe area
+    ctx.fillStyle = 'rgba(0,0,0,.35)';
+    ctx.fillRect(0,0,W,60);
   }
 
   function drawObstacles(){
     for (const o of obstacles){
       o.sway += 0.02;
-      const s = worldToScreen(o.x,o.y);
-
-      // outer shadow
+      // shadow
       ctx.save();
       ctx.globalAlpha = 0.25;
       ctx.fillStyle = '#000';
       ctx.beginPath();
-      ctx.ellipse(s.x+4, s.y+6, o.r*1.02, o.r*0.82, 0, 0, Math.PI*2);
+      ctx.ellipse(o.x+5, o.y+7, o.r*1.02, o.r*0.78, 0, 0, Math.PI*2);
       ctx.fill();
       ctx.restore();
 
-      if (o.kind === 'bush'){
-        const wig = Math.sin(o.sway)*2.5;
-        ctx.fillStyle = '#1f7a3a';
+      if (o.kind==='bush'){
+        const wig = Math.sin(o.sway)*2.4;
+        ctx.fillStyle = '#114f2b';
         ctx.beginPath();
-        ctx.ellipse(s.x, s.y, o.r+wig, o.r*0.85, 0, 0, Math.PI*2);
+        ctx.ellipse(o.x, o.y, o.r+wig, o.r*0.84, 0, 0, Math.PI*2);
         ctx.fill();
-        ctx.fillStyle = 'rgba(255,255,255,.10)';
+        ctx.fillStyle = 'rgba(140,255,210,.08)';
         ctx.beginPath();
-        ctx.ellipse(s.x - o.r*0.25, s.y - o.r*0.2, o.r*0.35, o.r*0.25, 0, 0, Math.PI*2);
+        ctx.ellipse(o.x-o.r*0.25, o.y-o.r*0.2, o.r*0.35, o.r*0.25, 0, 0, Math.PI*2);
         ctx.fill();
       } else {
-        // tree: trunk + canopy
-        ctx.fillStyle = '#5a3b24';
-        ctx.fillRect(s.x-5, s.y + o.r*0.2, 10, o.r*0.8);
+        ctx.fillStyle = '#3e261a';
+        ctx.fillRect(o.x-6, o.y+o.r*0.18, 12, o.r*0.86);
         const wig = Math.sin(o.sway)*2.0;
-        ctx.fillStyle = '#2aa04a';
+        ctx.fillStyle = '#1d7a3a';
         ctx.beginPath();
-        ctx.arc(s.x, s.y, o.r+wig, 0, Math.PI*2);
+        ctx.arc(o.x, o.y, o.r+wig, 0, Math.PI*2);
         ctx.fill();
-        ctx.fillStyle = 'rgba(255,255,255,.08)';
+        ctx.fillStyle = 'rgba(255,255,255,.06)';
         ctx.beginPath();
-        ctx.arc(s.x - o.r*0.25, s.y - o.r*0.25, o.r*0.35, 0, Math.PI*2);
+        ctx.arc(o.x-o.r*0.25, o.y-o.r*0.25, o.r*0.35, 0, Math.PI*2);
         ctx.fill();
       }
     }
@@ -705,231 +796,151 @@
     questionBox.bob += 0.06;
     const bobY = Math.sin(questionBox.bob)*4;
 
-    const s = worldToScreen(questionBox.x, questionBox.y + bobY);
+    const x = questionBox.x;
+    const y = questionBox.y + bobY;
+
     // glow
     ctx.save();
-    const g = ctx.createRadialGradient(s.x,s.y, 6, s.x,s.y, 34);
-    g.addColorStop(0, 'rgba(255,230,120,.55)');
-    g.addColorStop(1, 'rgba(255,230,120,0)');
+    const g = ctx.createRadialGradient(x,y, 6, x,y, 42);
+    g.addColorStop(0, 'rgba(255,210,110,.55)');
+    g.addColorStop(1, 'rgba(255,210,110,0)');
     ctx.fillStyle = g;
     ctx.beginPath();
-    ctx.arc(s.x,s.y, 34, 0, Math.PI*2);
+    ctx.arc(x,y, 42, 0, Math.PI*2);
     ctx.fill();
     ctx.restore();
 
     // box
-    ctx.fillStyle = '#f7c948';
-    ctx.strokeStyle = '#3a2d0a';
+    ctx.fillStyle = '#f3c550';
+    ctx.strokeStyle = '#241b07';
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.roundRect(s.x-16, s.y-16, 32, 32, 6);
-    ctx.fill();
-    ctx.stroke();
+    roundRect(ctx, x-16, y-16, 32, 32, 7);
+    ctx.fill(); ctx.stroke();
 
-    ctx.fillStyle = '#3a2d0a';
-    ctx.font = 'bold 18px system-ui';
+    ctx.fillStyle = '#241b07';
+    ctx.font = '900 18px system-ui';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('?', s.x, s.y+1);
+    ctx.fillText('?', x, y+1);
   }
 
   function drawAliens(){
     for (const a of aliens){
-      const s = worldToScreen(a.x,a.y);
-
-      // view cone indicator (subtle)
+      // view cone subtle (scarier in chaos)
       ctx.save();
-      ctx.globalAlpha = 0.08;
-      ctx.fillStyle = a.state==="chase" ? '#ff5ad5' : '#4cffd1';
+      ctx.globalAlpha = chaosActive ? 0.10 : 0.06;
+      ctx.fillStyle = a.state==='chase' ? 'rgba(255,80,170,.9)' : 'rgba(80,255,210,.9)';
       ctx.beginPath();
-      ctx.moveTo(s.x, s.y);
-      ctx.arc(s.x, s.y, CONFIG.alienViewDist*0.45, a.dir-0.65, a.dir+0.65);
+      ctx.moveTo(a.x,a.y);
+      ctx.arc(a.x,a.y, CONFIG.alienViewDist*0.43, a.dir-0.65, a.dir+0.65);
       ctx.closePath();
       ctx.fill();
       ctx.restore();
 
-      // alien body
+      // abduction beam when catching
+      if (a.beam > 0.01){
+        ctx.save();
+        ctx.globalAlpha = 0.20 + 0.35*a.beam;
+        ctx.fillStyle = 'rgba(150,255,220,.8)';
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(a.x-22, a.y+70);
+        ctx.lineTo(a.x+22, a.y+70);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+
       const pulse = Math.sin(a.wobble)*1.6;
-      ctx.fillStyle = a.state==="chase" ? '#ff5ad5' : '#52ffd2';
+      ctx.fillStyle = a.state==='chase' ? '#ff4fb8' : '#52ffd2';
       ctx.beginPath();
-      ctx.ellipse(s.x, s.y, a.r+2, a.r+6+pulse, 0, 0, Math.PI*2);
+      ctx.ellipse(a.x, a.y, a.r+2, a.r+7+pulse, 0, 0, Math.PI*2);
       ctx.fill();
 
       // eyes
-      ctx.fillStyle = '#0b0f14';
+      ctx.fillStyle = '#05070a';
       ctx.beginPath();
-      ctx.ellipse(s.x-5, s.y-3, 4, 6, 0, 0, Math.PI*2);
-      ctx.ellipse(s.x+5, s.y-3, 4, 6, 0, 0, Math.PI*2);
+      ctx.ellipse(a.x-5, a.y-3, 4, 6, 0, 0, Math.PI*2);
+      ctx.ellipse(a.x+5, a.y-3, 4, 6, 0, 0, Math.PI*2);
       ctx.fill();
 
       // mouth
-      ctx.strokeStyle = '#0b0f14';
+      ctx.strokeStyle = '#05070a';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(s.x, s.y+6, 6, 0, Math.PI);
+      ctx.arc(a.x, a.y+6, 6, 0, Math.PI);
       ctx.stroke();
     }
   }
 
-  function drawPlayers(){
-    const now = performance.now();
-    for (const p of players){
-      const s = worldToScreen(p.x,p.y);
-
-      // AMOK size changes
-      const amok = now < p.amokUntil;
-      const r = amok ? p.r*CONFIG.amokSizeMul : p.r;
-
-      // invuln blink after catch
-      let alpha = 1;
-      if (now < p.invulnUntil) alpha = (Math.floor(now/100)%2) ? 0.25 : 0.95;
-
-      ctx.save();
-      ctx.globalAlpha = alpha;
-
-      // aura if AMOK
-      if (amok){
-        const g = ctx.createRadialGradient(s.x,s.y, r*0.2, s.x,s.y, r*2.2);
-        g.addColorStop(0, p.skin.color+'88');
-        g.addColorStop(1, 'transparent');
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.arc(s.x,s.y, r*2.1, 0, Math.PI*2);
-        ctx.fill();
-      }
-
-      // body circle
-      ctx.fillStyle = p.skin.color;
-      ctx.beginPath();
-      ctx.arc(s.x,s.y, r, 0, Math.PI*2);
-      ctx.fill();
-
-      // emoji face
-      ctx.font = amok ? '28px system-ui' : '20px system-ui';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(p.skin.emoji, s.x, s.y+1);
-
-      // name tag
-      ctx.globalAlpha = Math.min(1, alpha);
-      ctx.font = 'bold 12px system-ui';
-      ctx.fillStyle = 'rgba(255,255,255,.85)';
-      ctx.fillText(p.skin.name, s.x, s.y - r - 14);
-
-      ctx.restore();
-    }
-  }
-
-  function drawMiniMap(){
-    // simple mini-map bottom-right
-    const pad = 12;
-    const mw = 180, mh = 110;
-    const x0 = W - mw - pad;
-    const y0 = H - mh - pad;
-
-    ctx.save();
-    ctx.globalAlpha = 0.9;
-    ctx.fillStyle = 'rgba(0,0,0,.35)';
-    ctx.strokeStyle = 'rgba(255,255,255,.18)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.roundRect(x0, y0, mw, mh, 10);
-    ctx.fill();
-    ctx.stroke();
-
-    const sx = mw / CONFIG.worldW;
-    const sy = mh / CONFIG.worldH;
-
-    // obstacles
-    ctx.globalAlpha = 0.35;
-    ctx.fillStyle = '#5cff8f';
-    for (const o of obstacles){
-      ctx.beginPath();
-      ctx.arc(x0 + o.x*sx, y0 + o.y*sy, Math.max(1.2, o.r*0.06), 0, Math.PI*2);
-      ctx.fill();
-    }
-
-    // question box
-    if (questionBox){
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = '#ffd86b';
-      ctx.beginPath();
-      ctx.arc(x0 + questionBox.x*sx, y0 + questionBox.y*sy, 3, 0, Math.PI*2);
-      ctx.fill();
-    }
-
-    // aliens
-    ctx.globalAlpha = 0.9;
-    ctx.fillStyle = chaosActive ? '#ff5ad5' : '#52ffd2';
-    for (const a of aliens){
-      ctx.beginPath();
-      ctx.arc(x0 + a.x*sx, y0 + a.y*sy, 2.2, 0, Math.PI*2);
-      ctx.fill();
-    }
-
-    // players
-    for (const p of players){
-      ctx.fillStyle = p.dead ? 'rgba(255,255,255,.25)' : p.skin.color;
-      ctx.beginPath();
-      ctx.arc(x0 + p.x*sx, y0 + p.y*sy, 3, 0, Math.PI*2);
-      ctx.fill();
-    }
-
-    ctx.restore();
-  }
-
-  // =============== MAIN LOOP ===============
-  function tick(){
-    maybeStartChaos();
-    updateChaosTimer();
-
-    for (const p of players){ handlePlayerInput(p); updatePlayer(p); }
-    // AMOK resolves before aliens update (feels powerful)
-    applyAmokEats();
-
-    for (let i=aliens.length-1;i>=0;i--){
-      updateAlien(aliens[i]);
-    }
-
-    updateCamera();
-    renderHUD();
-  }
-
   function render(){
-    drawWorldBG();
-
-    // draw world objects with camera transform
-    ctx.save();
-    ctx.translate(-cam.x, -cam.y);
-
-    // big world grid
-    ctx.save();
-    ctx.globalAlpha = 0.08;
-    ctx.strokeStyle = '#ffffff';
-    for (let x=0; x<=CONFIG.worldW; x+=120){
-      ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,CONFIG.worldH); ctx.stroke();
-    }
-    for (let y=0; y<=CONFIG.worldH; y+=120){
-      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CONFIG.worldW,y); ctx.stroke();
-    }
-    ctx.restore();
-
-    // obstacles block LOS => draw them before entities so it feels like you hide "behind"
-    // (for better hiding illusion you could draw cats first then obstacles on top)
+    renderBG();
     drawObstacles();
     drawQuestionBox();
     drawAliens();
-    drawPlayers();
+    // players are DOM gifs (above canvas), so nothing here
+  }
 
-    ctx.restore();
+  // small roundRect helper
+  function roundRect(ctx,x,y,w,h,r){
+    r = Math.min(r, w/2, h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+r, y);
+    ctx.arcTo(x+w, y, x+w, y+h, r);
+    ctx.arcTo(x+w, y+h, x, y+h, r);
+    ctx.arcTo(x, y+h, x, y, r);
+    ctx.arcTo(x, y, x+w, y, r);
+    ctx.closePath();
+  }
 
-    drawMiniMap();
+  // ====== TAUNTS / SPICE ======
+  function maybeTaunt(){
+    if (!CONFIG.taunts) return;
+    const now = performance.now();
+    if (now - lastTauntAt < 5500) return;
+
+    // only taunt if game is ongoing
+    if (paused) return;
+
+    const msgs = [
+      "They saw you. You just haven't accepted it yet.",
+      "Bush gaming won't save you forever.",
+      "Chaos is coming. Pretend you're ready.",
+      "If you hear nothing… it's already behind you.",
+      "Stop panicking. Start dashing.",
+      "Congrats. The aliens are faster now.",
+    ];
+    // slightly higher chance as rage grows
+    if (Math.random() < 0.45 + rageLevel*0.03){
+      setStatus(msgs[Math.floor(Math.random()*msgs.length)]);
+      lastTauntAt = now;
+    }
+  }
+
+  // ====== MAIN TICK ======
+  function tick(){
+    maybeChaos();
+    updateChaosTimer();
+
+    // rage level slowly increases (spice)
+    rageLevel = Math.min(10, rageLevel + 0.0022); // about +0.13 per sec
+    maybeTaunt();
+
+    for (const p of players){ handleInput(p); updatePlayer(p); }
+    applyAmok();
+
+    // update aliens
+    for (let i=aliens.length-1;i>=0;i--) updateAlien(aliens[i]);
+
+    updateCatImgs();
+    renderHUD();
   }
 
   function loop(t){
     requestAnimationFrame(loop);
     if (!running) return;
-    if (paused) { render(); return; }
+    if (paused) { render(); updateCatImgs(); return; }
 
     let delta = t - last;
     last = t;
@@ -943,20 +954,10 @@
     render();
   }
 
-  // boot: polyfill for roundRect if needed
-  if (!CanvasRenderingContext2D.prototype.roundRect){
-    CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){
-      r = Math.min(r, w/2, h/2);
-      this.beginPath();
-      this.moveTo(x+r, y);
-      this.arcTo(x+w, y, x+w, y+h, r);
-      this.arcTo(x+w, y+h, x, y+h, r);
-      this.arcTo(x, y+h, x, y, r);
-      this.arcTo(x, y, x+w, y, r);
-      this.closePath();
-      return this;
-    };
-  }
+  // ====== BOOT ======
+  // preload gifs
+  CAT_GIFS.forEach(url => { const img=new Image(); img.src=url; });
+
 })();
 </script>
 </body>
